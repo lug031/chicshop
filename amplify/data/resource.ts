@@ -60,8 +60,9 @@ const schema = a.schema({
       // Images
       mainImage: a.string(),
       additionalImages: a.string(), // JSON array
-      // Related cart items
+      // Related items
       cartItems: a.hasMany('CartItem', 'productID'),
+      wishlistItems: a.hasMany('Wishlist', 'productID'),
     })
     .authorization((allow) => [
       allow.groups(['admin']).to(['read', 'create', 'update', 'delete']),
