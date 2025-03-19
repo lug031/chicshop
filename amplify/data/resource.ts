@@ -6,22 +6,15 @@ const schema = a.schema({
       name: a.string(),
       description: a.string(),
       active: a.boolean(),
+      type: a.enum(['gender', 'productType', 'collection', 'season']),
       products: a.hasMany('ProductCategory', 'categoryID'),
-      tipo: a.enum([
-        'genero',
-        'temporada',
-        'tipoProducto',
-        'coleccion',
-        'ocasion',
-        'destacado',
-        'otro',
-      ]),
+      image: a.string(),
+      displayOrder: a.integer(),
+      featured: a.boolean(),
+      // Hierarchical categories (optional)
       parentCategoryID: a.string(),
       parentCategory: a.belongsTo('Category', 'parentCategoryID'),
       subCategories: a.hasMany('Category', 'parentCategoryID'),
-      ordenVisualizacion: a.integer(),
-      imageUrl: a.string(),
-      esDestacado: a.boolean(),
     })
     .authorization((allow) => [
       allow.groups(['admin']).to(['read', 'create', 'update', 'delete']),
@@ -36,7 +29,6 @@ const schema = a.schema({
       logo: a.string(),
       active: a.boolean(),
       products: a.hasMany('Product', 'brandID'),
-      country: a.string(), // País de origen de la marca
     })
     .authorization((allow) => [
       allow.groups(['admin']).to(['read', 'create', 'update', 'delete']),
@@ -50,95 +42,26 @@ const schema = a.schema({
       description: a.string(),
       price: a.float(),
       originalPrice: a.float(),
-      discountPercentage: a.integer(),
+      discount: a.integer(),
       stock: a.integer(),
       active: a.boolean(),
-      carousel: a.boolean(),
-      isPromoted: a.boolean(),
+      featured: a.boolean(),
+      // Relationships
       categories: a.hasMany('ProductCategory', 'productID'),
       brandID: a.string(),
       brand: a.belongsTo('Brand', 'brandID'),
-      // Atributos específicos para ropa
-      gender: a.enum(['mujer', 'hombre', 'unisex']),
-      temporada: a.enum(['primavera_verano', 'otono_invierno', 'todo_el_ano', 'bano', 'halloween']),
-      tipoProducto: a.enum([
-        // Tops
-        'camiseta',
-        'blusa',
-        'camisa',
-        'sueter',
-        'top',
-        'crop-top',
-        // Bottoms
-        'pantalon',
-        'jeans',
-        'shorts',
-        'falda',
-        'leggins',
-        // Full body
-        'vestido',
-        'jumpsuit',
-        'enterizo',
-        'conjunto',
-        // Outerwear
-        'chaqueta',
-        'abrigo',
-        'cardigan',
-        'blazer',
-        // Swimwear
-        'traje-de-bano',
-        'bikini',
-        'salida-de-bano',
-        // Lingerie & Sleepwear
-        'lenceria',
-        'pijama',
-        'ropa-interior',
-        'sosten',
-        // Footwear
-        'tenis',
-        'botas',
-        'sandalias',
-        'tacones',
-        'zapatos-planos',
-        // Accessories
-        'bolso',
-        'cartera',
-        'joyeria',
-        'sombrero',
-        'bufanda',
-        'cinturon',
-        'accesorio',
-        // Halloween specific
-        'disfraz',
-        'accesorio-halloween',
-        // Other
-        'otro',
-      ]),
-      ocasion: a.enum([
-        'casual',
-        'trabajo',
-        'fiesta',
-        'formal',
-        'deportiva',
-        'playa',
-        'halloween',
-        'evento-especial',
-        'diario',
-        'otro',
-      ]),
-      material: a.string(),
-      // Imágenes y variantes
-      imageUrl: a.string(),
-      additionalImages: a.string(), // JSON array con URLs adicionales
-      // Información de tallas y colores disponibles (como JSON)
-      tallas: a.string(), // JSON array con tallas disponibles
-      colores: a.string(), // JSON array con colores disponibles
-      // Promociones
-      promotionStartDate: a.string(),
-      promotionEndDate: a.string(),
-      promotionType: a.string(),
+      // Basic clothing attributes
+      gender: a.enum(['women', 'men', 'unisex']),
+      productType: a.string(), // E.g: "dress", "pants", etc.
+      season: a.string(), // E.g: "spring-summer", "all-year"
+      // Variants as JSON
+      sizes: a.string(), // JSON: ["S", "M", "L"]
+      colors: a.string(), // JSON: [{"name": "Red", "code": "#FF0000"}]
+      // Images
+      mainImage: a.string(),
+      additionalImages: a.string(), // JSON array
+      // Related cart items
       cartItems: a.hasMany('CartItem', 'productID'),
-      wishlistItems: a.hasMany('Wishlist', 'productID'),
     })
     .authorization((allow) => [
       allow.groups(['admin']).to(['read', 'create', 'update', 'delete']),
@@ -163,7 +86,7 @@ const schema = a.schema({
     .model({
       userID: a.string(),
       items: a.hasMany('CartItem', 'cartID'),
-      status: a.enum(['active', 'checkout', 'abandoned', 'completed']),
+      status: a.enum(['active', 'processing', 'abandoned', 'completed']),
       subtotal: a.float(),
       total: a.float(),
       createdAt: a.datetime(),
@@ -182,14 +105,10 @@ const schema = a.schema({
       productID: a.string(),
       product: a.belongsTo('Product', 'productID'),
       quantity: a.integer(),
-      // Atributos específicos para ropa
       size: a.string(),
       color: a.string(),
-      variationID: a.string(), // ID para identificar combinación talla/color
       price: a.float(),
-      originalPrice: a.float(),
-      discountPercentage: a.integer(),
-      isPromoted: a.boolean(),
+      discount: a.integer(),
     })
     .authorization((allow) => [
       allow.groups(['admin']).to(['read', 'create', 'update', 'delete']),
@@ -199,49 +118,39 @@ const schema = a.schema({
 
   Order: a
     .model({
-      // Customer Info
+      // Customer
+      userID: a.string(),
+      email: a.string(),
       firstName: a.string(),
       lastName: a.string(),
-      email: a.string(),
-      documentType: a.string(),
-      documentNumber: a.string(),
       phone: a.string(),
+      documentNumber: a.string(),
 
-      // Información de entrega
+      // Shipping
+      address: a.string(),
+      city: a.string(),
+      state: a.string(),
+      zipCode: a.string(),
       shippingMethod: a.string(),
-      shippingAddress: a.string(),
-      shippingCity: a.string(),
-      shippingState: a.string(),
-      shippingZip: a.string(),
 
-      // Facturación
-      invoiceType: a.string(),
-
-      // Order Items como JSON string
-      items: a.string(),
-
-      userEmail: a.string(),
-
-      // Order Totals
+      // Summary
+      items: a.string(), // JSON with products and quantities
       subtotal: a.float(),
       shipping: a.float(),
-      tax: a.float(), // Impuestos aplicables
-      discount: a.float(), // Descuentos aplicados
+      tax: a.float(),
+      discount: a.float(),
       total: a.float(),
 
       // Status
       status: a.enum(['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'returned']),
-
-      // Seguimiento
-      trackingNumber: a.string(),
-      trackingUrl: a.string(),
+      tracking: a.string(), // Tracking number or URL
 
       // Payment
       paymentMethod: a.string(),
       paymentStatus: a.enum(['pending', 'authorized', 'paid', 'refunded', 'failed']),
-      linkPago: a.string(),
-      linkShort: a.string(),
+      paymentLink: a.string(),
 
+      // Dates
       createdAt: a.datetime(),
       updatedAt: a.datetime(),
     })
@@ -251,13 +160,12 @@ const schema = a.schema({
       allow.publicApiKey().to(['read', 'create']),
     ]),
 
-  // Modelo para wishlist/favoritos
   Wishlist: a
     .model({
       userID: a.string(),
       productID: a.string(),
       product: a.belongsTo('Product', 'productID'),
-      addedAt: a.datetime(),
+      createdAt: a.datetime(),
     })
     .authorization((allow) => [allow.authenticated().to(['read', 'create', 'delete'])]),
 })
