@@ -60,7 +60,7 @@ const schema = a.schema({
       brand: a.belongsTo('Brand', 'brandID'),
       // Atributos específicos para ropa
       gender: a.enum(['mujer', 'hombre', 'unisex']),
-      temporada: a.enum(['primavera-verano', 'otono-invierno', 'todo-el-ano', 'bano', 'halloween']),
+      temporada: a.enum(['primavera_verano', 'otono_invierno', 'todo_el_ano', 'bano', 'halloween']),
       tipoProducto: a.enum([
         // Tops
         'camiseta',
