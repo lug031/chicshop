@@ -20,8 +20,8 @@ const schema = a.schema({
       parentCategory: a.belongsTo('Category', 'parentCategoryID'),
       subCategories: a.hasMany('Category', 'parentCategoryID'),
       ordenVisualizacion: a.integer(),
-      imageUrl: a.string(), // Imagen de la categoría para el menú/banners
-      esDestacado: a.boolean(), // Para destacar categorías en la página principal
+      imageUrl: a.string(),
+      esDestacado: a.boolean(),
     })
     .authorization((allow) => [
       allow.groups(['admin']).to(['read', 'create', 'update', 'delete']),
@@ -59,37 +59,80 @@ const schema = a.schema({
       brandID: a.string(),
       brand: a.belongsTo('Brand', 'brandID'),
       // Atributos específicos para ropa
-      gender: a.enum(['men', 'women', 'unisex', 'boys', 'girls', 'baby']),
-      size: a.string(), // Podría ser JSON si hay múltiples tallas disponibles
-      color: a.string(), // Podría ser JSON si hay múltiples colores disponibles
-      material: a.string(),
-      season: a.enum(['spring-summer', 'autumn-winter', 'all-year']),
-      productType: a.enum([
-        'tshirt',
-        'shirt',
-        'blouse',
-        'sweater',
-        'jacket',
-        'coat',
-        'pants',
+      gender: a.enum(['mujer', 'hombre', 'unisex']),
+      temporada: a.enum(['primavera-verano', 'otono-invierno', 'todo-el-ano', 'bano', 'halloween']),
+      tipoProducto: a.enum([
+        // Tops
+        'camiseta',
+        'blusa',
+        'camisa',
+        'sueter',
+        'top',
+        'crop-top',
+        // Bottoms
+        'pantalon',
         'jeans',
         'shorts',
-        'skirt',
-        'dress',
-        'sneakers',
-        'boots',
-        'sandals',
-        'heels',
-        'bag',
-        'backpack',
-        'accessory',
-        'underwear',
-        'swimwear',
-        'other',
+        'falda',
+        'leggins',
+        // Full body
+        'vestido',
+        'jumpsuit',
+        'enterizo',
+        'conjunto',
+        // Outerwear
+        'chaqueta',
+        'abrigo',
+        'cardigan',
+        'blazer',
+        // Swimwear
+        'traje-de-bano',
+        'bikini',
+        'salida-de-bano',
+        // Lingerie & Sleepwear
+        'lenceria',
+        'pijama',
+        'ropa-interior',
+        'sosten',
+        // Footwear
+        'tenis',
+        'botas',
+        'sandalias',
+        'tacones',
+        'zapatos-planos',
+        // Accessories
+        'bolso',
+        'cartera',
+        'joyeria',
+        'sombrero',
+        'bufanda',
+        'cinturon',
+        'accesorio',
+        // Halloween specific
+        'disfraz',
+        'accesorio-halloween',
+        // Other
+        'otro',
       ]),
-      // Imágenes
+      ocasion: a.enum([
+        'casual',
+        'trabajo',
+        'fiesta',
+        'formal',
+        'deportiva',
+        'playa',
+        'halloween',
+        'evento-especial',
+        'diario',
+        'otro',
+      ]),
+      material: a.string(),
+      // Imágenes y variantes
       imageUrl: a.string(),
       additionalImages: a.string(), // JSON array con URLs adicionales
+      // Información de tallas y colores disponibles (como JSON)
+      tallas: a.string(), // JSON array con tallas disponibles
+      colores: a.string(), // JSON array con colores disponibles
       // Promociones
       promotionStartDate: a.string(),
       promotionEndDate: a.string(),
@@ -108,25 +151,6 @@ const schema = a.schema({
       categoryID: a.string(),
       product: a.belongsTo('Product', 'productID'),
       category: a.belongsTo('Category', 'categoryID'),
-    })
-    .authorization((allow) => [
-      allow.groups(['admin']).to(['read', 'create', 'update', 'delete']),
-      allow.authenticated().to(['read']),
-      allow.publicApiKey().to(['read']),
-    ]),
-
-  // Modelo para variaciones de producto (tallas/colores)
-  ProductVariation: a
-    .model({
-      productID: a.string(),
-      product: a.belongsTo('Product', 'productID'),
-      size: a.string(),
-      color: a.string(),
-      stock: a.integer(),
-      sku: a.string(),
-      isDefault: a.boolean(), // Para indicar la variación mostrada por defecto
-      imageUrl: a.string(),
-      additionalImages: a.string(), // JSON array con URLs adicionales
     })
     .authorization((allow) => [
       allow.groups(['admin']).to(['read', 'create', 'update', 'delete']),
@@ -160,7 +184,7 @@ const schema = a.schema({
       // Atributos específicos para ropa
       size: a.string(),
       color: a.string(),
-      variationID: a.string(), // Referencia a ProductVariation si se usa
+      variationID: a.string(), // ID para identificar combinación talla/color
       price: a.float(),
       originalPrice: a.float(),
       discountPercentage: a.integer(),
