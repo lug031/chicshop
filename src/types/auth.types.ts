@@ -15,7 +15,7 @@ export interface LoginResponse {
     signInStep: string
     [key: string]: unknown
   }
-  phone?: string
+  email?: string
   requiresNewPassword?: boolean
   temporaryPassword?: string
 }

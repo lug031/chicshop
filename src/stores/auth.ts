@@ -56,15 +56,13 @@ export const useAuthStore = defineStore('auth', {
       return cleanPhone
     },
 
-    async login(phone: string, password: string): Promise<LoginResponse> {
+    async login(email: string, password: string): Promise<LoginResponse> {
       this.loading = true
       this.error = null
 
       try {
-        const formattedPhone = this.formatPeruPhoneNumber(phone)
-
         const result = await signIn({
-          username: formattedPhone,
+          username: email,
           password,
         })
         console.log('Resultado del signIn:', JSON.stringify(result, null, 2))
@@ -76,7 +74,7 @@ export const useAuthStore = defineStore('auth', {
         if (result.nextStep?.signInStep === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED') {
           return {
             requiresNewPassword: true,
-            phone: formattedPhone,
+            email: email,
             temporaryPassword: password,
             ...result,
             nextStep: { signInStep: result.nextStep.signInStep },
@@ -92,7 +90,7 @@ export const useAuthStore = defineStore('auth', {
 
         return {
           requiresNewPassword: false,
-          phone: formattedPhone,
+          email: email,
           ...result,
           nextStep: result.nextStep ? { signInStep: result.nextStep.signInStep } : undefined,
         }
@@ -106,17 +104,15 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async completeNewPasswordChallenge(
-      phone: string,
+      email: string,
       temporaryPassword: string,
       newPassword: string,
     ): Promise<boolean> {
       this.loading = true
       this.error = null
       try {
-        const formattedPhone = this.formatPeruPhoneNumber(phone)
-
         const result = await signIn({
-          username: formattedPhone,
+          username: email,
           password: temporaryPassword,
           options: {
             authFlowType: 'USER_PASSWORD_AUTH',
@@ -146,12 +142,12 @@ export const useAuthStore = defineStore('auth', {
     },
 
     async register(
-      phone: string,
+      email: string,
       password: string,
       profileData?: {
         firstName?: string
         lastName?: string
-        email?: string
+        phone?: string
         documentNumber?: string
       },
     ) {
@@ -159,15 +155,15 @@ export const useAuthStore = defineStore('auth', {
       this.error = null
 
       try {
-        const formattedPhone = this.formatPeruPhoneNumber(phone)
-
         const { isSignUpComplete, userId, nextStep } = await signUp({
-          username: formattedPhone,
+          username: email,
           password,
           options: {
             userAttributes: {
-              phone_number: formattedPhone,
-              ...(profileData?.email ? { email: profileData.email } : {}),
+              email: email,
+              ...(profileData?.phone
+                ? { phone_number: this.formatPeruPhoneNumber(profileData.phone) }
+                : {}),
             },
           },
         })
@@ -175,10 +171,10 @@ export const useAuthStore = defineStore('auth', {
         // Guardar los datos del perfil en localStorage para usarlos después de la confirmación
         if (profileData) {
           localStorage.setItem(
-            `profile_data_${formattedPhone}`,
+            `profile_data_${email}`,
             JSON.stringify({
               ...profileData,
-              phone: formattedPhone,
+              email: email,
               password: password, // Guardar la contraseña para iniciar sesión automáticamente después
               userId: userId,
             }),
@@ -194,15 +190,13 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    async confirmSignUp(phone: string, code: string) {
+    async confirmSignUp(email: string, code: string) {
       this.loading = true
       this.error = null
 
       try {
-        const formattedPhone = this.formatPeruPhoneNumber(phone)
-
         const { isSignUpComplete } = await confirmSignUp({
-          username: formattedPhone,
+          username: email,
           confirmationCode: code,
         })
 
@@ -253,7 +247,7 @@ export const useAuthStore = defineStore('auth', {
 
   getters: {
     isAuthenticated: (state): boolean => !!state.user,
-    userPhone: (state): string | undefined =>
-      (state.userAttributes?.phone_number as string) || state.user?.signInDetails?.loginId,
+    userEmail: (state): string | undefined =>
+      (state.userAttributes?.email as string) || state.user?.signInDetails?.loginId,
   },
 })

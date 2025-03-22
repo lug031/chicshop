@@ -8,7 +8,7 @@
       <!-- Cabecera -->
       <div class="flex items-center justify-between p-5 border-b border-gray-200">
         <h3 class="text-xl font-semibold text-gray-900">
-          {{ isRegisterMode ? 'Registro' : isConfirmMode ? 'Confirma tu número' : isNewPasswordMode ?
+          {{ isRegisterMode ? 'Registro' : isConfirmMode ? 'Confirma tu correo' : isNewPasswordMode ?
             'Cambiar contraseña' : 'Iniciar sesión' }}
         </h3>
         <button @click="closeModal" class="text-gray-500 hover:text-gray-700">
@@ -28,11 +28,10 @@
         <!-- Formulario de inicio de sesión -->
         <form v-if="!isRegisterMode && !isConfirmMode && !isNewPasswordMode" @submit.prevent="handleLogin">
           <div class="mb-4">
-            <label for="phone" class="block mb-2 text-sm font-medium text-gray-700">Número de celular</label>
-            <input id="phone" v-model="phone" type="tel"
+            <label for="email" class="block mb-2 text-sm font-medium text-gray-700">Correo electrónico</label>
+            <input id="email" v-model="email" type="email"
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="999999999" required />
-            <p class="mt-1 text-xs text-gray-500">Formato: 999999999</p>
+              placeholder="ejemplo@correo.com" required />
           </div>
 
           <div class="mb-6">
@@ -108,13 +107,12 @@
 
         <!-- Formulario de registro -->
         <form v-if="isRegisterMode && !isConfirmMode" @submit.prevent="handleRegister">
-          <!-- Información básica -->
+          <!-- Información básica para autenticación -->
           <div class="mb-4">
-            <label for="registerPhone" class="block mb-2 text-sm font-medium text-gray-700">Número de celular</label>
-            <input id="registerPhone" v-model="phone" type="tel"
+            <label for="registerEmail" class="block mb-2 text-sm font-medium text-gray-700">Correo electrónico</label>
+            <input id="registerEmail" v-model="email" type="email"
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="999999999" required />
-            <p class="mt-1 text-xs text-gray-500">Formato: 999999999</p>
+              placeholder="ejemplo@correo.com" required />
           </div>
 
           <div class="mb-6">
@@ -146,9 +144,11 @@
             </div>
 
             <div class="mb-4">
-              <label for="email" class="block mb-2 text-sm font-medium text-gray-700">Email (opcional)</label>
-              <input id="email" v-model="userInfo.email" type="email"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              <label for="phone" class="block mb-2 text-sm font-medium text-gray-700">Número de celular</label>
+              <input id="phone" v-model="userInfo.phone" type="tel"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="999999999" />
+              <p class="mt-1 text-xs text-gray-500">Formato: 999999999 (opcional)</p>
             </div>
 
             <div class="mb-4">
@@ -192,7 +192,7 @@
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="123456" required />
             <p class="mt-2 text-sm text-gray-600">
-              Ingresa el código enviado a tu celular {{ maskedPhone }}
+              Ingresa el código enviado a tu correo {{ email }}
             </p>
           </div>
 
@@ -242,7 +242,7 @@ const profileStore = useProfileStore()
 const isRegisterMode = ref(false)
 const isConfirmMode = ref(false)
 const isNewPasswordMode = ref(false)
-const phone = ref('')
+const email = ref('')
 const password = ref('')
 const temporaryPassword = ref('')
 const newPassword = ref('')
@@ -254,19 +254,12 @@ const errorMessage = ref('')
 const userInfo = ref({
   firstName: '',
   lastName: '',
-  email: '',
+  phone: '',
   documentNumber: '',
 })
 
 // Computed
 const loading = computed(() => authStore.loading || profileStore.loading)
-
-const maskedPhone = computed(() => {
-  if (!phone.value) return ''
-  const formatted = authStore.formatPeruPhoneNumber(phone.value)
-  const lastFour = formatted.slice(-4)
-  return `******${lastFour}`
-})
 
 // Methods
 const closeModal = () => {
@@ -275,7 +268,7 @@ const closeModal = () => {
 }
 
 const resetForm = () => {
-  phone.value = ''
+  email.value = ''
   password.value = ''
   temporaryPassword.value = ''
   newPassword.value = ''
@@ -288,7 +281,7 @@ const resetForm = () => {
   userInfo.value = {
     firstName: '',
     lastName: '',
-    email: '',
+    phone: '',
     documentNumber: '',
   }
 }
@@ -310,12 +303,11 @@ const switchToLogin = () => {
 const handleLogin = async () => {
   try {
     errorMessage.value = ''
-    const result = await authStore.login(phone.value, password.value)
+    const result = await authStore.login(email.value, password.value)
 
     if (result.requiresNewPassword) {
       isNewPasswordMode.value = true
       temporaryPassword.value = password.value
-      // No limpiamos el número de teléfono porque lo necesitaremos
       password.value = ''
       return
     }
@@ -346,7 +338,7 @@ const handleNewPasswordSubmit = async () => {
 
     errorMessage.value = ''
     const success = await authStore.completeNewPasswordChallenge(
-      phone.value,
+      email.value,
       temporaryPassword.value,
       newPassword.value
     )
@@ -375,10 +367,10 @@ const handleRegister = async () => {
     }
 
     // Registrar usuario con Cognito
-    const result = await authStore.register(phone.value, password.value, {
+    const result = await authStore.register(email.value, password.value, {
       firstName: userInfo.value.firstName,
       lastName: userInfo.value.lastName,
-      email: userInfo.value.email,
+      phone: userInfo.value.phone,
       documentNumber: userInfo.value.documentNumber
     })
 
@@ -393,32 +385,31 @@ const handleRegister = async () => {
 const handleConfirmation = async () => {
   try {
     errorMessage.value = ''
-    const success = await authStore.confirmSignUp(phone.value, confirmationCode.value)
+    const success = await authStore.confirmSignUp(email.value, confirmationCode.value)
 
     if (success) {
       // Ahora necesitamos iniciar sesión y crear el perfil
       try {
-        const formattedPhone = authStore.formatPeruPhoneNumber(phone.value)
-        const storedProfileData = localStorage.getItem(`profile_data_${formattedPhone}`)
+        const storedProfileData = localStorage.getItem(`profile_data_${email.value}`)
 
         if (storedProfileData) {
           const profileData = JSON.parse(storedProfileData)
 
           // Iniciar sesión automáticamente
-          //await authStore.login(formattedPhone, profileData.password || password.value)
+          await authStore.login(email.value, profileData.password || password.value)
 
           // Si el login es exitoso, crear el perfil
           await profileStore.createProfile({
             userID: authStore.user?.userId || '',
             firstName: profileData.firstName || userInfo.value.firstName,
             lastName: profileData.lastName || userInfo.value.lastName,
-            email: profileData.email || userInfo.value.email,
-            documentNumber: profileData.documentNumber || userInfo.value.documentNumber,
-            phone: formattedPhone
+            email: email.value,
+            phone: profileData.phone ? authStore.formatPeruPhoneNumber(profileData.phone) : "",
+            documentNumber: profileData.documentNumber || userInfo.value.documentNumber
           })
 
           // Limpiar datos del localStorage
-          localStorage.removeItem(`profile_data_${formattedPhone}`)
+          localStorage.removeItem(`profile_data_${email.value}`)
 
           // Notificar éxito y cerrar modal
           emit('register-success')
