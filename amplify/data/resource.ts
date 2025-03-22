@@ -194,6 +194,7 @@ const schema = a.schema({
   Wishlist: a
     .model({
       userID: a.string(),
+      profile: a.belongsTo('Profile', 'userID'), // Add this line to establish the relationship
       productID: a.string(),
       product: a.belongsTo('Product', 'productID'),
       createdAt: a.datetime(),
