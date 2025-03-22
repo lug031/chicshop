@@ -150,6 +150,7 @@ const schema = a.schema({
     .model({
       // Customer
       userID: a.string(),
+      profile: a.belongsTo('Profile', 'userID'), // Add this line to establish the relationship
       email: a.string(),
       firstName: a.string(),
       lastName: a.string(),
