@@ -22,6 +22,35 @@ const schema = a.schema({
       allow.publicApiKey().to(['read']),
     ]),
 
+  Profile: a
+    .model({
+      userID: a.string().required(), // ID de Cognito (owner)
+      firstName: a.string(),
+      lastName: a.string(),
+      documentNumber: a.string(),
+      email: a.string(),
+      phone: a.string(),
+      // Dirección
+      address: a.string(),
+      city: a.string(),
+      state: a.string(),
+      zipCode: a.string(),
+      // Preferencias y otros datos
+      preferences: a.string(), // JSON con preferencias
+      avatarUrl: a.string(),
+      // Timestamps
+      createdAt: a.datetime(),
+      updatedAt: a.datetime(),
+      // Referencias a otros modelos
+      orders: a.hasMany('Order', 'userID'),
+      wishlist: a.hasMany('Wishlist', 'userID'),
+      cart: a.belongsTo('Cart', 'userID'),
+    })
+    .authorization((allow) => [
+      allow.owner().to(['read', 'update']), // El propietario puede leer y actualizar
+      allow.groups(['admin']).to(['read', 'create', 'update', 'delete']), // Admins tienen control total
+    ]),
+
   Brand: a
     .model({
       name: a.string(),
