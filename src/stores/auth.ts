@@ -145,7 +145,16 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    async register(phone: string, password: string) {
+    async register(
+      phone: string,
+      password: string,
+      profileData?: {
+        firstName?: string
+        lastName?: string
+        email?: string
+        documentNumber?: string
+      },
+    ) {
       this.loading = true
       this.error = null
 
@@ -158,9 +167,23 @@ export const useAuthStore = defineStore('auth', {
           options: {
             userAttributes: {
               phone_number: formattedPhone,
+              ...(profileData?.email ? { email: profileData.email } : {}),
             },
           },
         })
+
+        // Guardar los datos del perfil en localStorage para usarlos después de la confirmación
+        if (profileData) {
+          localStorage.setItem(
+            `profile_data_${formattedPhone}`,
+            JSON.stringify({
+              ...profileData,
+              phone: formattedPhone,
+              password: password, // Guardar la contraseña para iniciar sesión automáticamente después
+              userId: userId,
+            }),
+          )
+        }
 
         return { isSignUpComplete, userId, nextStep }
       } catch (error) {

@@ -367,7 +367,20 @@ const handleNewPasswordSubmit = async () => {
 const handleRegister = async () => {
   try {
     errorMessage.value = ''
-    const result = await authStore.register(phone.value, password.value)
+
+    // Validar datos
+    if (userInfo.value.firstName.trim() === '' || userInfo.value.lastName.trim() === '' || userInfo.value.documentNumber.trim() === '') {
+      errorMessage.value = 'Por favor complete todos los campos obligatorios'
+      return
+    }
+
+    // Registrar usuario con Cognito
+    const result = await authStore.register(phone.value, password.value, {
+      firstName: userInfo.value.firstName,
+      lastName: userInfo.value.lastName,
+      email: userInfo.value.email,
+      documentNumber: userInfo.value.documentNumber
+    })
 
     if (result.nextStep?.signUpStep === 'CONFIRM_SIGN_UP') {
       isConfirmMode.value = true
@@ -383,13 +396,43 @@ const handleConfirmation = async () => {
     const success = await authStore.confirmSignUp(phone.value, confirmationCode.value)
 
     if (success) {
-      // Ya no iniciamos sesión automáticamente
-      emit('register-success')
-      // Mostrar mensaje de éxito y redirigir al login
-      errorMessage.value = ''
+      // Ahora necesitamos iniciar sesión y crear el perfil
+      try {
+        const formattedPhone = authStore.formatPeruPhoneNumber(phone.value)
+        const storedProfileData = localStorage.getItem(`profile_data_${formattedPhone}`)
+
+        if (storedProfileData) {
+          const profileData = JSON.parse(storedProfileData)
+
+          // Iniciar sesión automáticamente
+          //await authStore.login(formattedPhone, profileData.password || password.value)
+
+          // Si el login es exitoso, crear el perfil
+          await profileStore.createProfile({
+            userID: authStore.user?.userId || '',
+            firstName: profileData.firstName || userInfo.value.firstName,
+            lastName: profileData.lastName || userInfo.value.lastName,
+            email: profileData.email || userInfo.value.email,
+            documentNumber: profileData.documentNumber || userInfo.value.documentNumber,
+            phone: formattedPhone
+          })
+
+          // Limpiar datos del localStorage
+          localStorage.removeItem(`profile_data_${formattedPhone}`)
+
+          // Notificar éxito y cerrar modal
+          emit('register-success')
+          closeModal()
+          return
+        }
+      } catch (profileError) {
+        console.error('Error al crear perfil después de verificar:', profileError)
+        // Si falla la creación del perfil, mostrar mensaje de registro exitoso pero sin perfil
+        alert('Verificación exitosa. Por favor inicia sesión para continuar.')
+      }
+
+      // Si no hay datos de perfil o falla el login automático, volver al login
       switchToLogin()
-      // Mostrar mensaje de confirmación
-      alert('¡Registro exitoso! Ahora puedes iniciar sesión con tu número y contraseña.')
     }
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : 'Error al verificar el código'
