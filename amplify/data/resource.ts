@@ -115,6 +115,7 @@ const schema = a.schema({
   Cart: a
     .model({
       userID: a.string(),
+      profile: a.hasOne('Profile', 'userID'), // Add this line to establish the relationship
       items: a.hasMany('CartItem', 'cartID'),
       status: a.enum(['active', 'processing', 'abandoned', 'completed']),
       subtotal: a.float(),
