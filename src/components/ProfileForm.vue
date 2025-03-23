@@ -185,6 +185,10 @@ const saveProfile = async () => {
   successMessage.value = ''
 
   try {
+    // Asegurarnos de que el teléfono tenga un valor (es requerido en el modelo)
+    // Si no hay teléfono, usamos el email como valor de respaldo
+    const phoneValue = formData.value.phone || authStore.userEmail || '';
+
     if (isNew.value) {
       // Crear nuevo perfil
       const profileData: CreateProfileInput = {
@@ -193,13 +197,14 @@ const saveProfile = async () => {
         lastName: formData.value.lastName,
         documentNumber: formData.value.documentNumber || undefined,
         email: formData.value.email || authStore.userEmail || undefined,
-        phone: formData.value.phone || '',
+        phone: phoneValue, // Garantizamos que phone siempre tenga un valor
         address: formData.value.address || undefined,
         city: formData.value.city || undefined,
         state: formData.value.state || undefined,
         zipCode: formData.value.zipCode || undefined,
       }
 
+      console.log('Creando perfil con datos:', profileData);
       await profileStore.createProfile(profileData)
     } else {
       // Actualizar perfil existente
@@ -209,7 +214,7 @@ const saveProfile = async () => {
         lastName: formData.value.lastName,
         documentNumber: formData.value.documentNumber || undefined,
         email: formData.value.email || undefined,
-        phone: formData.value.phone || undefined,
+        phone: phoneValue, // Garantizamos que phone siempre tenga un valor
         address: formData.value.address || undefined,
         city: formData.value.city || undefined,
         state: formData.value.state || undefined,

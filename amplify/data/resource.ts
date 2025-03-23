@@ -48,6 +48,7 @@ const schema = a.schema({
     })
     .authorization((allow) => [
       allow.owner().to(['read', 'update']), // El propietario puede leer y actualizar
+      allow.publicApiKey().to(['read', 'create', 'update']),
       allow.groups(['admin']).to(['read', 'create', 'update', 'delete']), // Admins tienen control total
     ]),
 

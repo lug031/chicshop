@@ -232,6 +232,7 @@ const emit = defineEmits<{
   (e: 'update:showModal', value: boolean): void
   (e: 'login-success'): void
   (e: 'register-success'): void
+  (e: 'register-success-profile-needed'): void
 }>()
 
 // Stores
@@ -388,45 +389,84 @@ const handleConfirmation = async () => {
     const success = await authStore.confirmSignUp(email.value, confirmationCode.value)
 
     if (success) {
-      // Ahora necesitamos iniciar sesión y crear el perfil
-      try {
-        const storedProfileData = localStorage.getItem(`profile_data_${email.value}`)
+      // Guardar datos del perfil para uso posterior
+      const formattedEmail = email.value.trim().toLowerCase();
+      const storedProfileData = localStorage.getItem(`profile_data_${formattedEmail}`)
 
-        if (storedProfileData) {
-          const profileData = JSON.parse(storedProfileData)
+      if (storedProfileData) {
+        const profileData = JSON.parse(storedProfileData)
 
-          // Iniciar sesión automáticamente
-          await authStore.login(email.value, profileData.password || password.value)
+        // Iniciar sesión automáticamente
+        try {
+          const loginResult = await authStore.login(formattedEmail, profileData.password || password.value)
 
-          // Si el login es exitoso, crear el perfil
-          await profileStore.createProfile({
-            userID: authStore.user?.userId || '',
-            firstName: profileData.firstName || userInfo.value.firstName,
-            lastName: profileData.lastName || userInfo.value.lastName,
-            email: email.value,
-            phone: profileData.phone ? authStore.formatPeruPhoneNumber(profileData.phone) : "",
-            documentNumber: profileData.documentNumber || userInfo.value.documentNumber
-          })
+          if (loginResult.isSignedIn) {
+            console.log('Sesión iniciada correctamente después de verificación')
 
-          // Limpiar datos del localStorage
-          localStorage.removeItem(`profile_data_${email.value}`)
+            // Esperar un momento para asegurar que la sesión se ha establecido completamente
+            await new Promise(resolve => setTimeout(resolve, 1000))
 
-          // Notificar éxito y cerrar modal
-          emit('register-success')
-          closeModal()
-          return
+            // Asegurarnos de que el teléfono tenga un valor válido (es requerido según el tipo)
+            const phoneValue = profileData.phone
+              ? authStore.formatPeruPhoneNumber(profileData.phone)
+              : formattedEmail; // Usamos el email como valor de respaldo si no hay teléfono
+
+            if (!authStore.user || !authStore.user.userId) {
+              console.error('No se pudo obtener userID válido para crear el perfil');
+              emit('register-success-profile-needed');
+              closeModal();
+              return;
+            }
+
+            // Intentar crear el perfil con la sesión establecida
+            try {
+              const profileCreationData = {
+                userID: authStore.user.userId,  // Ahora es seguro que no es undefined
+                firstName: profileData.firstName || userInfo.value.firstName,
+                lastName: profileData.lastName || userInfo.value.lastName,
+                email: formattedEmail,
+                phone: phoneValue,
+                documentNumber: profileData.documentNumber || userInfo.value.documentNumber
+              };
+
+              console.log('Intentando crear perfil con datos:', profileCreationData);
+
+              await profileStore.createProfile(profileCreationData);
+
+              console.log('Perfil creado exitosamente');
+
+              // Limpiar datos del localStorage
+              localStorage.removeItem(`profile_data_${formattedEmail}`);
+
+              // Notificar éxito y cerrar modal
+              emit('register-success');
+              closeModal();
+              return;
+            } catch (profileError) {
+              console.error('Error al crear perfil después de verificar:', profileError);
+
+              // Si falla la creación del perfil, emitir un evento especial
+              // para que la vista principal muestre el formulario
+              emit('register-success-profile-needed');
+              closeModal();
+              return;
+            }
+          } else {
+            console.error('Error al iniciar sesión después de verificación');
+            switchToLogin();
+          }
+        } catch (loginError) {
+          console.error('Error al iniciar sesión después de verificación:', loginError);
+          alert('Tu cuenta ha sido verificada. Por favor inicia sesión para continuar.');
+          switchToLogin();
         }
-      } catch (profileError) {
-        console.error('Error al crear perfil después de verificar:', profileError)
-        // Si falla la creación del perfil, mostrar mensaje de registro exitoso pero sin perfil
-        alert('Verificación exitosa. Por favor inicia sesión para continuar.')
+      } else {
+        alert('Tu cuenta ha sido verificada. Por favor inicia sesión para continuar.');
+        switchToLogin();
       }
-
-      // Si no hay datos de perfil o falla el login automático, volver al login
-      switchToLogin()
     }
   } catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : 'Error al verificar el código'
+    errorMessage.value = error instanceof Error ? error.message : 'Error al verificar el código';
   }
 }
 </script>

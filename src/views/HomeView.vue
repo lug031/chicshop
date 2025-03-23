@@ -34,6 +34,17 @@ const handleLoginSuccess = async () => {
   console.log('Inicio de sesión exitoso')
 }
 
+const handleRegisterSuccessProfileNeeded = () => {
+  console.log('Registro exitoso, pero se necesita crear el perfil manualmente')
+  // Mostrar inmediatamente el formulario de perfil
+  showProfileForm.value = true
+
+  // Opcionalmente, mostrar un mensaje al usuario
+  setTimeout(() => {
+    alert('Tu cuenta ha sido creada. Por favor completa tu perfil para continuar.')
+  }, 500)
+}
+
 const handleRegisterSuccess = () => {
   // El perfil ya no se crea en el proceso de registro - mostramos formulario
   console.log('Registro exitoso')
@@ -181,7 +192,8 @@ const handleLogout = async () => {
 
     <!-- Modal de login -->
     <LoginModal v-model:showModal="showLoginModal" @login-success="handleLoginSuccess"
-      @register-success="handleRegisterSuccess" />
+      @register-success="handleRegisterSuccess" @register-success-profile-needed="handleRegisterSuccessProfileNeeded" />
+
 
     <!-- Formulario de perfil -->
     <div v-if="showProfileForm" class="fixed inset-0 z-50 flex items-center justify-center">
