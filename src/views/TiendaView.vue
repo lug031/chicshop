@@ -310,8 +310,8 @@ function generateSampleProducts(count: number) {
             <div class="border-t border-gray-200 py-4">
               <h4 class="font-medium text-gray-900 mb-3">Precio</h4>
               <div class="flex justify-between mb-2">
-                <span class="text-sm text-gray-500">€{{ priceRange[0] }}</span>
-                <span class="text-sm text-gray-500">€{{ priceRange[1] }}</span>
+                <span class="text-sm text-gray-500">S/.{{ priceRange[0] }}</span>
+                <span class="text-sm text-gray-500">S/.{{ priceRange[1] }}</span>
               </div>
               <input type="range" min="0" max="500" step="10" v-model.number="priceRange[0]" class="w-full">
               <input type="range" min="0" max="500" step="10" v-model.number="priceRange[1]" class="w-full">
@@ -361,8 +361,8 @@ function generateSampleProducts(count: number) {
             <div class="border-t border-gray-200 py-4">
               <h4 class="font-medium text-gray-900 mb-3">Precio</h4>
               <div class="flex justify-between mb-2">
-                <span class="text-sm text-gray-500">€{{ priceRange[0] }}</span>
-                <span class="text-sm text-gray-500">€{{ priceRange[1] }}</span>
+                <span class="text-sm text-gray-500">S/.{{ priceRange[0] }}</span>
+                <span class="text-sm text-gray-500">S/.{{ priceRange[1] }}</span>
               </div>
               <input type="range" min="0" max="500" step="10" v-model.number="priceRange[0]" class="w-full">
               <input type="range" min="0" max="500" step="10" v-model.number="priceRange[1]" class="w-full">
@@ -455,9 +455,9 @@ function generateSampleProducts(count: number) {
               <div class="mt-4">
                 <h3 class="text-sm font-medium text-gray-900">{{ product.name }}</h3>
                 <div class="mt-1 flex items-center">
-                  <p class="font-medium text-gray-900">€{{ product.price.toFixed(2) }}</p>
+                  <p class="font-medium text-gray-900">S/.{{ product.price.toFixed(2) }}</p>
                   <p v-if="product.originalPrice" class="ml-2 text-sm text-gray-500 line-through">
-                    €{{ product.originalPrice.toFixed(2) }}
+                    S/.{{ product.originalPrice.toFixed(2) }}
                   </p>
                 </div>
                 <div class="mt-1 flex space-x-1">

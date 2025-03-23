@@ -8,8 +8,8 @@ const authStore = useAuthStore()
 const profileStore = useProfileStore()
 const isLoading = ref(true)
 const recentOrders = ref([
-  { id: 'ORD-2458', date: 'Hace 2 días', amount: '€89.99', status: 'Entregado' },
-  { id: 'ORD-2357', date: 'Hace 1 semana', amount: '€124.50', status: 'En camino' }
+  { id: 'ORD-2458', date: 'Hace 2 días', amount: 'S/.89.99', status: 'Entregado' },
+  { id: 'ORD-2357', date: 'Hace 1 semana', amount: 'S/.124.50', status: 'En camino' }
 ])
 const wishlistItems = ref(3)
 const availableCoupons = ref(2)
@@ -247,7 +247,7 @@ onMounted(async () => {
                   <h4 class="text-sm font-medium text-gray-900 group-hover:text-black">
                     Producto Recomendado {{ i }}
                   </h4>
-                  <p class="text-sm text-gray-500">€{{ 39.99 + (i * 10) }}</p>
+                  <p class="text-sm text-gray-500">S/.{{ 39.99 + (i * 10) }}</p>
                 </div>
               </div>
             </div>

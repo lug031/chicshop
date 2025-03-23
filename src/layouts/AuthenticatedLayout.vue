@@ -99,7 +99,7 @@ const toggleUserMenu = () => {
   <div class="min-h-screen bg-gray-50 flex flex-col">
     <!-- Anuncio superior -->
     <div class="bg-black text-white text-center py-2 text-sm">
-      <p>ENVÍO GRATIS EN PEDIDOS SUPERIORES A 50€ | DEVOLUCIONES GRATUITAS EN 30 DÍAS</p>
+      <p>ENVÍO GRATIS EN PEDIDOS SUPERIORES A S/.50 | DEVOLUCIONES GRATUITAS EN 30 DÍAS</p>
     </div>
 
     <!-- Barra de navegación -->
