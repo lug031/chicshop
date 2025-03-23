@@ -72,13 +72,13 @@ const handleLogout = async () => {
               ¡Hola, {{ profileStore.profile.firstName }} {{ profileStore.profile.lastName }}!
             </h2>
             <p class="text-gray-600 mt-2">
-              Número: {{ authStore.userPhone }}
+              Email: {{ authStore.userEmail }}
+            </p>
+            <p v-if="profileStore.profile.phone" class="text-gray-600">
+              Teléfono: {{ profileStore.profile.phone }}
             </p>
             <p v-if="profileStore.profile.documentNumber" class="text-gray-600">
               Documento: {{ profileStore.profile.documentNumber }}
-            </p>
-            <p v-if="profileStore.profile.email" class="text-gray-600">
-              Email: {{ profileStore.profile.email }}
             </p>
           </div>
           <div v-else-if="profileStore.loading" class="mb-4">
@@ -86,7 +86,7 @@ const handleLogout = async () => {
           </div>
           <div v-else class="mb-4">
             <p class="text-gray-600">
-              Estás conectado con el número {{ authStore.userPhone }}
+              Estás conectado con el email {{ authStore.userEmail }}
             </p>
           </div>
 
@@ -122,7 +122,7 @@ const handleLogout = async () => {
               </div>
               <div>
                 <p class="text-sm text-gray-500">Teléfono</p>
-                <p class="font-medium">{{ profileStore.profile.phone }}</p>
+                <p class="font-medium">{{ profileStore.profile.phone || 'No especificado' }}</p>
               </div>
               <div>
                 <p class="text-sm text-gray-500">Email</p>
