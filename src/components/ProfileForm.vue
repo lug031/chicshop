@@ -46,6 +46,12 @@
             <input id="email" v-model="formData.email" type="email"
               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
+
+          <div>
+            <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+            <input id="phone" v-model="formData.phone" type="tel"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          </div>
         </div>
 
         <!-- Dirección -->
@@ -124,6 +130,7 @@ const formData = ref({
   lastName: '',
   documentNumber: '',
   email: '',
+  phone: '',
   address: '',
   city: '',
   state: '',
@@ -149,11 +156,15 @@ const loadProfile = async () => {
         lastName: profileStore.profile.lastName || '',
         documentNumber: profileStore.profile.documentNumber || '',
         email: profileStore.profile.email || '',
+        phone: profileStore.profile.phone || '',
         address: profileStore.profile.address || '',
         city: profileStore.profile.city || '',
         state: profileStore.profile.state || '',
         zipCode: profileStore.profile.zipCode || '',
       }
+    } else {
+      // Si no hay perfil pero hay usuario autenticado, prellenar el email
+      formData.value.email = authStore.userEmail || '';
     }
   } catch (error) {
     errorMessage.value = 'Error al cargar el perfil'
@@ -181,12 +192,12 @@ const saveProfile = async () => {
         firstName: formData.value.firstName,
         lastName: formData.value.lastName,
         documentNumber: formData.value.documentNumber || undefined,
-        email: formData.value.email || undefined,
+        email: formData.value.email || authStore.userEmail || undefined,
+        phone: formData.value.phone || '',
         address: formData.value.address || undefined,
         city: formData.value.city || undefined,
         state: formData.value.state || undefined,
         zipCode: formData.value.zipCode || undefined,
-        phone: authStore.userPhone || '',
       }
 
       await profileStore.createProfile(profileData)
@@ -198,6 +209,7 @@ const saveProfile = async () => {
         lastName: formData.value.lastName,
         documentNumber: formData.value.documentNumber || undefined,
         email: formData.value.email || undefined,
+        phone: formData.value.phone || undefined,
         address: formData.value.address || undefined,
         city: formData.value.city || undefined,
         state: formData.value.state || undefined,
