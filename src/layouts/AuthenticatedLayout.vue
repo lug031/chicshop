@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useProfileStore } from '@/stores/profile'
 import { useInactivity } from '@/composables/useInactivity'
@@ -10,6 +10,7 @@ import AppFooter from '@/components/AppFooter.vue'
 // Stores
 const authStore = useAuthStore()
 const profileStore = useProfileStore()
+const router = useRouter()
 
 // Estado
 const showLoginModal = ref(false)
@@ -74,6 +75,7 @@ const handleLogout = async () => {
     showUserMenu.value = false
     // Reiniciamos la bandera de perfil cargado
     profileLoaded.value = false
+    router.push('/')
     console.log('Sesión cerrada')
   } catch (error) {
     console.error('Error al cerrar sesión:', error)

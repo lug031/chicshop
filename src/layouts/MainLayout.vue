@@ -89,6 +89,7 @@ const handleLogout = async () => {
     showUserMenu.value = false
     // Reiniciamos la bandera de perfil cargado
     profileLoaded.value = false
+    router.push('/')
     console.log('Sesión cerrada')
   } catch (error) {
     console.error('Error al cerrar sesión:', error)
