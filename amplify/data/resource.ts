@@ -47,7 +47,7 @@ const schema = a.schema({
       cart: a.belongsTo('Cart', 'userID'),
     })
     .authorization((allow) => [
-      allow.owner().to(['read', 'update']), // El propietario puede leer y actualizar
+      allow.authenticated().to(['read', 'create', 'update']),
       allow.publicApiKey().to(['read', 'create', 'update']),
       allow.groups(['admin']).to(['read', 'create', 'update', 'delete']), // Admins tienen control total
     ]),
