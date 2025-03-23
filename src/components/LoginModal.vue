@@ -4,11 +4,11 @@
     <div class="fixed inset-0 bg-black bg-opacity-50" @click="closeModal"></div>
 
     <!-- Modal -->
-    <div class="relative w-full max-w-md mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+    <div class="relative w-full max-w-md mx-auto bg-white rounded-lg shadow-xl overflow-hidden">
       <!-- Cabecera -->
-      <div class="flex items-center justify-between p-5 border-b border-gray-200">
-        <h3 class="text-xl font-semibold text-gray-900">
-          {{ isRegisterMode ? 'Registro' : isConfirmMode ? 'Confirma tu correo' : isNewPasswordMode ?
+      <div class="flex items-center justify-between p-6 border-b border-gray-200">
+        <h3 class="text-xl font-bold text-gray-900">
+          {{ isRegisterMode ? 'Crear cuenta' : isConfirmMode ? 'Verificar correo' : isNewPasswordMode ?
             'Cambiar contraseña' : 'Iniciar sesión' }}
         </h3>
         <button @click="closeModal" class="text-gray-500 hover:text-gray-700">
@@ -19,9 +19,9 @@
       </div>
 
       <!-- Cuerpo -->
-      <div class="p-5">
+      <div class="p-6">
         <!-- Mensaje de error -->
-        <div v-if="errorMessage" class="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
+        <div v-if="errorMessage" class="mb-5 p-4 bg-red-50 border-l-4 border-red-400 text-red-700 rounded-md">
           {{ errorMessage }}
         </div>
 
@@ -30,23 +30,23 @@
           <div class="mb-4">
             <label for="email" class="block mb-2 text-sm font-medium text-gray-700">Correo electrónico</label>
             <input id="email" v-model="email" type="email"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
               placeholder="ejemplo@correo.com" required />
           </div>
 
           <div class="mb-6">
             <label for="password" class="block mb-2 text-sm font-medium text-gray-700">Contraseña</label>
             <input id="password" v-model="password" type="password"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
               required />
           </div>
 
           <button type="submit"
-            class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            class="w-full py-3 px-4 bg-black hover:bg-gray-800 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
             :disabled="loading">
             <span v-if="!loading">Iniciar sesión</span>
             <span v-else class="flex justify-center items-center">
-              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+              <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
                 viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor"
@@ -57,16 +57,16 @@
             </span>
           </button>
 
-          <div class="mt-4 text-center">
-            <button type="button" @click="switchToRegister" class="text-sm text-blue-600 hover:text-blue-800">
-              ¿No tienes una cuenta? Regístrate
+          <div class="mt-5 text-center">
+            <button type="button" @click="switchToRegister" class="text-sm text-gray-600 hover:text-black">
+              ¿No tienes una cuenta? <span class="font-medium">Regístrate ahora</span>
             </button>
           </div>
         </form>
 
         <!-- Formulario de cambio de contraseña obligatorio -->
         <form v-if="isNewPasswordMode" @submit.prevent="handleNewPasswordSubmit">
-          <div class="mb-4">
+          <div class="mb-5">
             <p class="text-sm text-gray-700 mb-4">
               Tu cuenta requiere un cambio de contraseña. Por favor, crea una nueva contraseña para continuar.
             </p>
@@ -75,7 +75,7 @@
           <div class="mb-4">
             <label for="newPassword" class="block mb-2 text-sm font-medium text-gray-700">Nueva contraseña</label>
             <input id="newPassword" v-model="newPassword" type="password"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
               required minlength="8" />
             <p class="mt-1 text-xs text-gray-500">La contraseña debe tener al menos 8 caracteres</p>
           </div>
@@ -84,16 +84,16 @@
             <label for="confirmPassword" class="block mb-2 text-sm font-medium text-gray-700">Confirmar
               contraseña</label>
             <input id="confirmPassword" v-model="confirmPassword" type="password"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
               required />
           </div>
 
           <button type="submit"
-            class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            class="w-full py-3 px-4 bg-black hover:bg-gray-800 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
             :disabled="loading || newPassword !== confirmPassword">
             <span v-if="!loading">Cambiar contraseña</span>
             <span v-else class="flex justify-center items-center">
-              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+              <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
                 viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor"
@@ -111,14 +111,14 @@
           <div class="mb-4">
             <label for="registerEmail" class="block mb-2 text-sm font-medium text-gray-700">Correo electrónico</label>
             <input id="registerEmail" v-model="email" type="email"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
               placeholder="ejemplo@correo.com" required />
           </div>
 
           <div class="mb-6">
             <label for="registerPassword" class="block mb-2 text-sm font-medium text-gray-700">Contraseña</label>
             <input id="registerPassword" v-model="password" type="password"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
               required minlength="8" />
             <p class="mt-1 text-xs text-gray-500">La contraseña debe tener al menos 8 caracteres</p>
           </div>
@@ -131,14 +131,14 @@
               <div>
                 <label for="firstName" class="block mb-2 text-sm font-medium text-gray-700">Nombre</label>
                 <input id="firstName" v-model="userInfo.firstName" type="text"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
                   required />
               </div>
 
               <div>
                 <label for="lastName" class="block mb-2 text-sm font-medium text-gray-700">Apellido</label>
                 <input id="lastName" v-model="userInfo.lastName" type="text"
-                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
                   required />
               </div>
             </div>
@@ -146,7 +146,7 @@
             <div class="mb-4">
               <label for="phone" class="block mb-2 text-sm font-medium text-gray-700">Número de celular</label>
               <input id="phone" v-model="userInfo.phone" type="tel"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
                 placeholder="999999999" />
               <p class="mt-1 text-xs text-gray-500">Formato: 999999999 (opcional)</p>
             </div>
@@ -155,17 +155,17 @@
               <label for="documentNumber" class="block mb-2 text-sm font-medium text-gray-700">Documento de
                 identidad</label>
               <input id="documentNumber" v-model="userInfo.documentNumber" type="text"
-                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
                 required />
             </div>
           </div>
 
           <button type="submit"
-            class="w-full py-2 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+            class="w-full py-3 px-4 bg-black hover:bg-gray-800 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
             :disabled="loading">
-            <span v-if="!loading">Registrarse</span>
+            <span v-if="!loading">Crear cuenta</span>
             <span v-else class="flex justify-center items-center">
-              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+              <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
                 viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor"
@@ -176,9 +176,9 @@
             </span>
           </button>
 
-          <div class="mt-4 text-center">
-            <button type="button" @click="switchToLogin" class="text-sm text-blue-600 hover:text-blue-800">
-              ¿Ya tienes una cuenta? Inicia sesión
+          <div class="mt-5 text-center">
+            <button type="button" @click="switchToLogin" class="text-sm text-gray-600 hover:text-black">
+              ¿Ya tienes una cuenta? <span class="font-medium">Inicia sesión</span>
             </button>
           </div>
         </form>
@@ -189,19 +189,19 @@
             <label for="confirmationCode" class="block mb-2 text-sm font-medium text-gray-700">Código de
               verificación</label>
             <input id="confirmationCode" v-model="confirmationCode" type="text"
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black"
               placeholder="123456" required />
             <p class="mt-2 text-sm text-gray-600">
-              Ingresa el código enviado a tu correo {{ email }}
+              Hemos enviado un código de verificación a <span class="font-medium">{{ email }}</span>
             </p>
           </div>
 
           <button type="submit"
-            class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            class="w-full py-3 px-4 bg-black hover:bg-gray-800 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors"
             :disabled="loading">
             <span v-if="!loading">Verificar código</span>
             <span v-else class="flex justify-center items-center">
-              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
+              <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none"
                 viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor"

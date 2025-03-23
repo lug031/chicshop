@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useProfileStore } from '@/stores/profile'
 import LoginModal from '@/components/LoginModal.vue'
@@ -8,20 +9,58 @@ import ProfileForm from '@/components/ProfileForm.vue'
 // Estados
 const showLoginModal = ref(false)
 const showProfileForm = ref(false)
+const profileLoading = ref(false)
 const authStore = useAuthStore()
 const profileStore = useProfileStore()
+const router = useRouter()
 
 // Comprobar si el usuario ya está autenticado
 authStore.checkAuth()
 
-// Cargar perfil si está autenticado
+// Si el usuario está autenticado, redirigir a Dashboard
 onMounted(async () => {
   if (authStore.isAuthenticated) {
-    console.log("Usuario autenticado, cargando perfil...");
-    const profile = await profileStore.fetchUserProfile(true); // Forzar refresco
-    console.log("Perfil cargado en HomeView:", profile);
+    await loadUserProfile()
+    router.push('/dashboard')
   }
 })
+
+// Función para cargar el perfil con reintentos
+const loadUserProfile = async (retries = 3) => {
+  if (!authStore.isAuthenticated) return null;
+
+  profileLoading.value = true;
+
+  try {
+    // Intenta cargar el perfil
+    const profile = await profileStore.fetchUserProfile(true);
+
+    // Si no hay perfil y aún tenemos reintentos
+    if (!profile && retries > 0) {
+      // Esperar un segundo y reintentar
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return loadUserProfile(retries - 1);
+    }
+
+    return profile;
+  } catch (error) {
+    console.error("Error al cargar perfil:", error);
+    return null;
+  } finally {
+    profileLoading.value = false;
+  }
+};
+
+// Observar cambios en el estado de autenticación
+watch(() => authStore.isAuthenticated, async (isAuthenticated) => {
+  if (isAuthenticated) {
+    await loadUserProfile();
+    router.push('/dashboard');
+  } else {
+    // Si el usuario cierra sesión, limpiar el perfil
+    profileStore.clearProfile();
+  }
+});
 
 // Métodos
 const openLoginModal = () => {
@@ -30,162 +69,103 @@ const openLoginModal = () => {
 
 const handleLoginSuccess = async () => {
   // Cargar perfil después del inicio de sesión exitoso
-  await profileStore.fetchUserProfile()
-  console.log('Inicio de sesión exitoso')
+  await loadUserProfile();
+  router.push('/dashboard');
 }
 
 const handleRegisterSuccessProfileNeeded = () => {
-  console.log('Registro exitoso, pero se necesita crear el perfil manualmente')
   // Mostrar inmediatamente el formulario de perfil
   showProfileForm.value = true
-
-  // Opcionalmente, mostrar un mensaje al usuario
-  setTimeout(() => {
-    alert('Tu cuenta ha sido creada. Por favor completa tu perfil para continuar.')
-  }, 500)
 }
 
 const handleRegisterSuccess = () => {
-  // El perfil ya no se crea en el proceso de registro - mostramos formulario
-  console.log('Registro exitoso')
-  // Mostramos el formulario de perfil al usuario
-  showProfileForm.value = true
+  // Intentamos cargar el perfil primero
+  loadUserProfile().then(profile => {
+    if (!profile) {
+      // Si no hay perfil, mostramos el formulario
+      showProfileForm.value = true;
+    } else {
+      router.push('/dashboard');
+    }
+  });
 }
 
 const handleProfileSaved = async () => {
   // Refrescar el perfil después de guardar
-  await profileStore.fetchUserProfile(true)
-  showProfileForm.value = false
-}
-
-const handleLogout = async () => {
-  try {
-    await authStore.logout()
-    // Limpiar el perfil al cerrar sesión
-    profileStore.clearProfile()
-    console.log('Sesión cerrada')
-  } catch (error) {
-    console.error('Error al cerrar sesión:', error)
-  }
+  await loadUserProfile();
+  showProfileForm.value = false;
+  router.push('/dashboard');
 }
 </script>
 
 <template>
-  <main class="container mx-auto px-4 py-8">
-    <div class="max-w-4xl mx-auto">
-      <!-- Sección de bienvenida -->
-      <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <h1 class="text-2xl font-bold text-gray-800 mb-4">Bienvenido a nuestra plataforma</h1>
-
-        <div v-if="authStore.isAuthenticated" class="mb-6">
-          <div v-if="profileStore.profile" class="mb-4">
-            <h2 class="text-lg font-semibold text-gray-700">
-              ¡Hola, {{ profileStore.profile.firstName }} {{ profileStore.profile.lastName }}!
-            </h2>
-            <p class="text-gray-600 mt-2">
-              Email: {{ authStore.userEmail }}
-            </p>
-            <p v-if="profileStore.profile.phone" class="text-gray-600">
-              Teléfono: {{ profileStore.profile.phone }}
-            </p>
-            <p v-if="profileStore.profile.documentNumber" class="text-gray-600">
-              Documento: {{ profileStore.profile.documentNumber }}
-            </p>
-          </div>
-          <div v-else-if="profileStore.loading" class="mb-4">
-            <p class="text-gray-600">Cargando información de perfil...</p>
-          </div>
-          <div v-else class="mb-4">
-            <p class="text-gray-600">
-              Estás conectado con el email {{ authStore.userEmail }}
-            </p>
-          </div>
-
-          <button @click="handleLogout" class="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md">
-            Cerrar sesión
-          </button>
-        </div>
-
-        <div v-else class="mb-6">
-          <p class="text-lg text-gray-700">
-            Para acceder a todas las funciones de nuestra plataforma, por favor inicia sesión o regístrate.
+  <main class="min-h-screen bg-gray-50">
+    <!-- Hero section -->
+    <div class="relative overflow-hidden bg-gradient-to-r from-blue-500 to-indigo-600">
+      <div class="relative pt-16 pb-20 sm:pt-24 sm:pb-32 lg:pt-32 lg:pb-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <h1 class="text-4xl font-extrabold text-white sm:text-5xl md:text-6xl">
+            <span class="block">Mi Aplicación</span>
+            <span class="block text-blue-200 mt-2">Plataforma de Gestión</span>
+          </h1>
+          <p class="mt-6 max-w-lg mx-auto text-xl text-blue-100 sm:max-w-3xl">
+            Bienvenido a nuestra plataforma. Inicia sesión para acceder a todas nuestras funcionalidades.
           </p>
-          <button @click="openLoginModal" class="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md">
-            Iniciar sesión / Registrarse
-          </button>
+          <div class="mt-10 max-w-sm mx-auto sm:max-w-none sm:flex sm:justify-center">
+            <div class="space-y-4 sm:space-y-0 sm:mx-auto">
+              <button @click="openLoginModal"
+                class="flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-indigo-700 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10">
+                Iniciar sesión
+              </button>
+            </div>
+          </div>
         </div>
       </div>
+    </div>
 
-      <!-- Contenido principal -->
-      <div class="bg-white rounded-lg shadow-md p-6">
-        <h2 class="text-xl font-semibold mb-4">Perfil de Usuario</h2>
-        <div v-if="authStore.isAuthenticated && profileStore.profile" class="space-y-4">
-          <div class="border-b border-gray-200 pb-4">
-            <h3 class="text-lg font-medium text-gray-800 mb-2">Información Personal</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p class="text-sm text-gray-500">Nombre completo</p>
-                <p class="font-medium">{{ profileStore.profile.firstName }} {{ profileStore.profile.lastName }}</p>
+    <!-- Características -->
+    <div class="py-12 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="lg:text-center">
+          <h2 class="text-base text-indigo-600 font-semibold tracking-wide uppercase">Características</h2>
+          <p class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+            Una mejor forma de gestionar
+          </p>
+          <p class="mt-4 max-w-2xl text-xl text-gray-500 lg:mx-auto">
+            Nuestra plataforma ofrece una experiencia completa para la gestión de tus datos.
+          </p>
+        </div>
+
+        <div class="mt-10">
+          <div class="space-y-10 md:space-y-0 md:grid md:grid-cols-2 md:gap-x-8 md:gap-y-10">
+            <div class="relative">
+              <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                <!-- Icono placeholder -->
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
               </div>
-              <div>
-                <p class="text-sm text-gray-500">Documento de identidad</p>
-                <p class="font-medium">{{ profileStore.profile.documentNumber || 'No especificado' }}</p>
+              <p class="ml-16 text-lg leading-6 font-medium text-gray-900">Característica 1</p>
+              <p class="mt-2 ml-16 text-base text-gray-500">
+                Descripción detallada de la primera característica destacada de la plataforma.
+              </p>
+            </div>
+
+            <div class="relative">
+              <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-indigo-500 text-white">
+                <!-- Icono placeholder -->
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
               </div>
-              <div>
-                <p class="text-sm text-gray-500">Teléfono</p>
-                <p class="font-medium">{{ profileStore.profile.phone || 'No especificado' }}</p>
-              </div>
-              <div>
-                <p class="text-sm text-gray-500">Email</p>
-                <p class="font-medium">{{ profileStore.profile.email || 'No especificado' }}</p>
-              </div>
+              <p class="ml-16 text-lg leading-6 font-medium text-gray-900">Característica 2</p>
+              <p class="mt-2 ml-16 text-base text-gray-500">
+                Descripción detallada de la segunda característica destacada de la plataforma.
+              </p>
             </div>
           </div>
-
-          <div v-if="profileStore.profile.address">
-            <h3 class="text-lg font-medium text-gray-800 mb-2">Dirección</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p class="text-sm text-gray-500">Dirección</p>
-                <p class="font-medium">{{ profileStore.profile.address }}</p>
-              </div>
-              <div>
-                <p class="text-sm text-gray-500">Ciudad</p>
-                <p class="font-medium">{{ profileStore.profile.city || 'No especificada' }}</p>
-              </div>
-              <div>
-                <p class="text-sm text-gray-500">Región/Estado</p>
-                <p class="font-medium">{{ profileStore.profile.state || 'No especificada' }}</p>
-              </div>
-              <div>
-                <p class="text-sm text-gray-500">Código postal</p>
-                <p class="font-medium">{{ profileStore.profile.zipCode || 'No especificado' }}</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="mt-6">
-            <button @click="showProfileForm = true"
-              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md">
-              Editar perfil
-            </button>
-          </div>
-        </div>
-
-        <div v-else-if="authStore.isAuthenticated && profileStore.loading" class="py-8 text-center">
-          <p class="text-gray-600">Cargando información de perfil...</p>
-        </div>
-
-        <div v-else-if="authStore.isAuthenticated" class="py-4 text-center">
-          <p class="text-gray-600 mb-4">No se ha encontrado información de perfil.</p>
-          <button @click="showProfileForm = true"
-            class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md">
-            Completar mi perfil
-          </button>
-        </div>
-
-        <div v-else class="py-8 text-center">
-          <p class="text-gray-600">Inicia sesión para ver tu perfil.</p>
         </div>
       </div>
     </div>
@@ -193,7 +173,6 @@ const handleLogout = async () => {
     <!-- Modal de login -->
     <LoginModal v-model:showModal="showLoginModal" @login-success="handleLoginSuccess"
       @register-success="handleRegisterSuccess" @register-success-profile-needed="handleRegisterSuccessProfileNeeded" />
-
 
     <!-- Formulario de perfil -->
     <div v-if="showProfileForm" class="fixed inset-0 z-50 flex items-center justify-center">
